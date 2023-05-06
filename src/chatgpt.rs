@@ -10,6 +10,8 @@ pub struct ChatGPT {
     client: reqwest::blocking::Client,
     openai_api_key: String,
     url: String,
+    system_prompt: String,
+    model: String,
 }
 
 impl ChatGPT {
@@ -33,6 +35,8 @@ You need to define one wether in the configuration file or as an environment var
             client: reqwest::blocking::Client::new(),
             openai_api_key,
             url: config.url,
+            system_prompt: config.system_prompt,
+            model: config.model,
         }
     }
 }
@@ -52,17 +56,14 @@ impl LLM for ChatGPT {
         let mut messages: Vec<HashMap<String, String>> = vec![
             (HashMap::from([
                 ("role".to_string(), "system".to_string()),
-                (
-                    "content".to_string(),
-                    "You are a helpful assistant.".to_string(),
-                ),
+                ("content".to_string(), self.system_prompt.to_string()),
             ])),
         ];
 
         messages.extend(chat_messages);
 
         let body: Value = json!({
-            "model": "gpt-3.5-turbo",
+            "model": self.model.to_string(),
             "messages": messages
         });
 
